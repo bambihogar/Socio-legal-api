@@ -1,0 +1,4 @@
+/venv
+/endpoints.txt
+/__pycache__
+.env
