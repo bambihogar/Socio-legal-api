@@ -15,7 +15,7 @@ class Record_repository(ABC):
         pass
     
     @(abstractmethod)
-    def update_record(
+    def modify_record(
         kid_id:str,
         kid_name: str,
         kid_last_name: str,
@@ -32,7 +32,6 @@ class Record_repository(ABC):
         responsible_name: str,
         responsible_id_doc: str,
         responsible_phone_number:str
-
     ):
         pass
 

@@ -3,20 +3,22 @@ from datetime import datetime
 from typing import List
 
 class Update_kid_record_dto(BaseModel):
+    id:str = Field(None, min_length=12) 
+    kid_internal_id: str = Field(...,min_length=4)
     kid_last_names: str = Field(..., min_length=3)
-    kid_names: str = Field(...,min_length=3) 
-    kid_personal_id: str = Field(min_length=8) 
-    kid_birth_certificate: str 
-
-    record_court_id: str = Field(...,min_length=4) 
-    record_bambi_entry_date: List[datetime] = Field(...) 
+    kid_names: str = Field(...,min_length=3)
+    kid_personal_id: str | None  
+    kid_birth_certificate: str | None       
+    record_court_id: str = Field(...,min_length=4)
+    record_bambi_entry_date: List[datetime] = Field(...)
     record_bambi_entry_reasons: List[str] = Field(...) 
-    record_bambi_departure_date: List[datetime] 
-    record_bambi_departure_reason: List[str] 
+    record_bambi_departure_date: List[datetime] | None
+    record_bambi_departure_reason: List[str] | None
+    record_justice_organization: str = Field(...,min_length=5)      
+    responsible_names: list[str] | None
+    responsible_identification:list[str] | None
+    responsible_contact:list[str] | None
     
-    record_justice_organization: str = Field(...,min_length=5)
-    responsible_names: list[str] 
-    responsible_identification:list[str] 
-    responsible_contact:list[str] 
+
         
 

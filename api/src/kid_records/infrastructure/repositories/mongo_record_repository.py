@@ -1,7 +1,9 @@
-from uuid import uuid4
+import json
+from uuid import UUID, uuid4
 import uuid
 from bson import Binary
 from fastapi import Depends
+from pymongo import ReturnDocument
 from src.core.infrastructure.config.database import get_db
 from src.kid_records.domain.repository.record_repository import Record_repository
 
@@ -10,11 +12,10 @@ class Mongo_record_repository(Record_repository):
 
     async def create_kid_record(self, record):
         try:
-            
             kid_record = self.ensamble_kid_record(record,uuid4())
+            print(kid_record )
             kid_record2 = dict(kid_record)
             response = DB.insert_one(kid_record)
-            print('response',response)
             print()
             return kid_record2
         
@@ -24,23 +25,36 @@ class Mongo_record_repository(Record_repository):
     
     async def find_one(self, id:str):
         try:
-            print('id:',id )
+            
             kid_record = DB.find_one({'id':id})
-            print('kid_record before schema:', kid_record)
+            if kid_record is None:
+                return {'msg': f"The record with the if {id} doesn't exist"}
+            print('find', id)
             kid_record = self.kid_record_schema(kid_record)
-            print('kid_record after schema:', kid_record)
-            print()
+            
             return kid_record
-        
         except Exception as e:
-            print('klk:',e)
+            print('find one has gotten an exception:',e)
     
     async def search(query:str):
         pass
     
     
-    async def update_record():
-        pass
+    async def modify_record(self, record):
+        try:
+        
+            kid_record = self.ensamble_kid_record(record,uuid4())
+            kid_record['id']= record.id
+            kid_record =  DB.find_one_and_replace({
+                'id':record.id},
+                kid_record,
+                return_document = ReturnDocument.AFTER
+            )  
+            kid_record = self.kid_record_schema(kid_record)
+            return kid_record
+        
+        except Exception as e:
+            print('Update record has gotten an exception:',e)
 
 
     
@@ -65,7 +79,6 @@ class Mongo_record_repository(Record_repository):
 
 
     def kid_record_schema(self,kid_record)-> dict:
-        print ('llegue')
         return {
             'id':  kid_record['id'],
             'kid':{
@@ -94,8 +107,7 @@ class Mongo_record_repository(Record_repository):
         }
 
 
-    def ensamble_kid_record(self,dto, id:uuid4):
-            
+    def ensamble_kid_record(self,dto, id):
             kid_record = {
                 'id': id.hex,
                 'kid':{
@@ -122,7 +134,7 @@ class Mongo_record_repository(Record_repository):
                     }, 
                 }
                 
-            print('kid record en la funcion   ',kid_record)
-            print()
+            
             return kid_record
 
+    
