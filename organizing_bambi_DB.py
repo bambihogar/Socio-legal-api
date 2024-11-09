@@ -144,6 +144,17 @@ try:
     database = client['bambi_socio_legal']
     collection = database['kid_information']
     res2 = collection.insert_many(array)
+    res2.create_index({
+        'kid.internal_id':'text',
+        'kid.last_names':'text',
+        'kid.names':'text',
+        'record.court_id':'text',
+        'record.bambi_entry_dates':'text',
+        'record.bambi_departure_dates':'text'
+    }, 
+    {
+        'name':'search_kids_index'
+    })
     print('yasta')
 except Exception as ex:
     print('conectadose a DB: {}'.format(ex))
@@ -152,3 +163,15 @@ finally:
 #acomodar manualmente griselda; 039-2016-JULIO CARRASQUEL, José Isrrael; 372 DÁVALOS CONTRERAS, Santiago Isaac; 798 hasta 802; 013-2023 880;
 # 005-2023 870y871; 022-2009 150y151; 026-2009 157 hasta 161; 
 #Yoangel D'olio acomodar manual 006-2021
+
+
+#db.blog.createIndex(
+#   {
+#     content: "text",
+#     "users.comments": "text",
+#     "users.profiles": "text"
+#   },
+#   {
+#     name: "InteractionsTextIndex"
+#   }
+#)

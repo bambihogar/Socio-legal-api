@@ -12,16 +12,9 @@ class find_one_kid_record_service[str, dict](ApplicationService):
         self.kid_record_repository = record_repository
     
     async def execute(self,id: str) -> dict:
-        try:
-            kid_record = await self.kid_record_repository.find_one(id)
-            print('kid_record en service', kid_record)
-            
-            print()
+            kid_record = await self.kid_record_repository.find_one(id)          
             return kid_record
 
-        except Exception as e:
-            print(e)    
-        
         
         
     

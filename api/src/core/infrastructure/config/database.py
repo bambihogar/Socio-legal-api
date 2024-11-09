@@ -11,4 +11,9 @@ def get_db():
     client = MongoClient(uri)
     database = client['bambi_socio_legal']
     kids = database['kid_information']
+    
     return kids
+
+
+
+

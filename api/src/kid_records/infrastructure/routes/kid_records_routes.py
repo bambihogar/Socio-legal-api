@@ -1,4 +1,7 @@
 from fastapi import APIRouter, FastAPI
+from src.kid_records.application.queries.search.types.dto import Search_kid_dto
+from src.kid_records.application.queries.search.search_kid import Search_kid_service
+from src.kid_records.infrastructure.routes.entries.search_kid_entry import Search_kid_entry
 from src.kid_records.infrastructure.routes.entries.create_kid_record_entry import Create_kid_record_entry
 from src.kid_records.infrastructure.routes.entries.update_kid_record_entry import Update_kid_record_entry
 from src.kid_records.infrastructure.repositories.mongo_record_repository import Mongo_record_repository
@@ -32,18 +35,27 @@ async def find_one(id:str):
     return result
 
 @kid_records_router.get("/",)
-async def search():
-    return {"username": "search"}
+async def search(q: str = None, page: int = 0, limit: int = 10):
+    try:
+        print(q,page,limit)
+        dto = Search_kid_dto(page= page,per_page=limit, search=q)
+        service = Search_kid_service(kid_records_repository)
+        result = await service.execute(dto)
+        return result
+    except Exception as e:
+        print(e)
+        return {'msg':f'There is an error {e}'}
 
 
 
 @kid_records_router.put("/{id}/",)
 async def update(body: Update_kid_record_entry, id: str):
-    dto = organize_update_dto(body,id)
-    service = Update_kid_record_service(kid_records_repository)
-    result = await service.execute(dto) 
-    return result
-
+    
+        dto = organize_update_dto(body,id)
+        service = Update_kid_record_service(kid_records_repository)
+        result = await service.execute(dto) 
+        return result
+    
 
 @kid_records_router.delete("/create",)
 async def delete():

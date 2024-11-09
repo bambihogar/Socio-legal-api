@@ -4,6 +4,7 @@ import uuid
 from bson import Binary
 from fastapi import Depends
 from pymongo import ReturnDocument
+from src.kid_records.application.queries.search.types.dto import Search_kid_dto
 from src.core.infrastructure.config.database import get_db
 from src.kid_records.domain.repository.record_repository import Record_repository
 
@@ -36,8 +37,21 @@ class Mongo_record_repository(Record_repository):
         except Exception as e:
             print('find one has gotten an exception:',e)
     
-    async def search(query:str):
-        pass
+    async def search(self,query:Search_kid_dto):
+        try:
+            kids = DB\
+                .find({
+                     '$text':{'$search': query.search},})\
+                .skip(query.page*query.per_page)\
+                .limit(query.per_page).to_list()
+            kids = self.kid_schemas(kids)
+            if kids is None:
+                return {'msg': f"There is no records matching {query.search} "}
+            return kids
+        except Exception as e:
+                  print('search has gotten an exception:',e)
+
+
     
     
     async def modify_record(self, record):
@@ -75,7 +89,8 @@ class Mongo_record_repository(Record_repository):
         }
 
     def kid_schemas(self,kid_records)-> list[dict]:
-        return [ self.kid_schema(kid) for kid in kid_records ]
+        kids=[ self.kid_schema(kid) for kid in kid_records ]
+        return kids
 
 
     def kid_record_schema(self,kid_record)-> dict:
