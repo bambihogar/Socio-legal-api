@@ -1,14 +1,15 @@
-from fastapi import APIRouter, FastAPI
+from src.kid_records.application.commands.delete.delete_kid_record import Delete_kid_record_service
 from src.kid_records.application.queries.search.types.dto import Search_kid_dto
 from src.kid_records.application.queries.search.search_kid import Search_kid_service
-from src.kid_records.infrastructure.routes.entries.search_kid_entry import Search_kid_entry
-from src.kid_records.infrastructure.routes.entries.create_kid_record_entry import Create_kid_record_entry
-from src.kid_records.infrastructure.routes.entries.update_kid_record_entry import Update_kid_record_entry
-from src.kid_records.infrastructure.repositories.mongo_record_repository import Mongo_record_repository
 from src.kid_records.application.queries.find_one.find_one_kid_record import find_one_kid_record_service
 from src.kid_records.application.commands.update.update_kid_record import Update_kid_record_service
 from src.kid_records.application.commands.create.create_kid_record import Create_kid_record_service
 from src.kid_records.application.commands.update.types.dto import Update_kid_record_dto
+from src.kid_records.infrastructure.routes.entries.update_kid_record_entry import Update_kid_record_entry
+from src.kid_records.infrastructure.routes.entries.create_kid_record_entry import Create_kid_record_entry
+from src.kid_records.infrastructure.routes.entries.search_kid_entry import Search_kid_entry
+from src.kid_records.infrastructure.repositories.mongo_record_repository import Mongo_record_repository
+from fastapi import APIRouter, FastAPI
 from uuid import uuid4
 
 kid_records_router = APIRouter(
@@ -36,16 +37,11 @@ async def find_one(id:str):
 
 @kid_records_router.get("/",)
 async def search(q: str = None, page: int = 0, limit: int = 10):
-    try:
         print(q,page,limit)
         dto = Search_kid_dto(page= page,per_page=limit, search=q)
         service = Search_kid_service(kid_records_repository)
         result = await service.execute(dto)
         return result
-    except Exception as e:
-        print(e)
-        return {'msg':f'There is an error {e}'}
-
 
 
 @kid_records_router.put("/{id}/",)
@@ -57,9 +53,11 @@ async def update(body: Update_kid_record_entry, id: str):
         return result
     
 
-@kid_records_router.delete("/create",)
-async def delete():
-    return {"username": "delete"}
+@kid_records_router.delete("/delete/{id}",)
+async def delete(id:str):
+        service = Delete_kid_record_service(kid_records_repository)
+        result = await service.execute(id)
+        return result
 
 
 

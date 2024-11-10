@@ -1,3 +1,4 @@
+from src.core.application.result_handlers.result import Result
 from src.core.application.application_service import ApplicationService
 from src.kid_records.application.queries.search.types.dto import Search_kid_dto
 from src.kid_records.domain.repository.record_repository import Record_repository
@@ -11,7 +12,10 @@ class Search_kid_service[str, dict](ApplicationService):
         self.kid_record_repository = record_repository
     
     async def execute(self, dto:Search_kid_dto) -> dict:
-            kids = await self.kid_record_repository.search(dto)
-            return kids
-    
+            response:Result = await self.kid_record_repository.search(dto)
+            if response.is_error() :
+                return {'Error': response.get_error_message()} 
+            return response.develop()
+
+
         

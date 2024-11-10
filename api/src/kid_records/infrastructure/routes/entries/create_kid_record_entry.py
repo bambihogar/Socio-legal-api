@@ -4,8 +4,8 @@ from typing import List, Optional
 
 class Create_kid_record_entry(BaseModel):
         kid_internal_id: str = Field(...,min_length=4)
-        kid_last_names: str = Field(..., min_length=3)
-        kid_names: str = Field(...,min_length=3)
+        kid_last_names: str = Field(..., min_length=2)
+        kid_names: str = Field(...,min_length=2)
         kid_personal_id: Optional[str] = Field(...,min_length=8)
         kid_birth_certificate: Optional[str] = Field(...,min_length=5)
 

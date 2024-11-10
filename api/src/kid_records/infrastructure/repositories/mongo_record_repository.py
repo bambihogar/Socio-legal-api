@@ -1,155 +1,92 @@
-import json
-from uuid import UUID, uuid4
-import uuid
-from bson import Binary
+from src.kid_records.application.queries.search.types.dto import Search_kid_dto
+from src.kid_records.domain.repository.record_repository import Record_repository
+from src.kid_records.infrastructure.schemas import kid_records_mongo_schemas as ch
+from src.core.infrastructure.config.database import get_db
+from src.core.application.error import Error
+from src.core.application.result_handlers.result import Result
+from uuid import uuid4
 from fastapi import Depends
 from pymongo import ReturnDocument
-from src.kid_records.application.queries.search.types.dto import Search_kid_dto
-from src.core.infrastructure.config.database import get_db
-from src.kid_records.domain.repository.record_repository import Record_repository
 
 DB = get_db()
+
 class Mongo_record_repository(Record_repository):   
 
     async def create_kid_record(self, record):
         try:
-            kid_record = self.ensamble_kid_record(record,uuid4())
-            print(kid_record )
-            kid_record2 = dict(kid_record)
-            response = DB.insert_one(kid_record)
-            print()
-            return kid_record2
+            kid_record = ch.ensamble_kid_record(record,uuid4())
+            original_kid_record = dict(kid_record)
+            db_result = DB.insert_one(kid_record)
+            return Result.success(original_kid_record)
         
         except Exception as e:
-            print('error', e)
+            print('e', e)
+            return Result.failure('MongoDB Exception', type(e))
             
     
     async def find_one(self, id:str):
         try:
-            
             kid_record = DB.find_one({'id':id})
-            if kid_record is None:
-                return {'msg': f"The record with the if {id} doesn't exist"}
-            print('find', id)
-            kid_record = self.kid_record_schema(kid_record)
-            
-            return kid_record
+            if kid_record is None:    
+                return Result.failure(Error(f'Kid Record Not Found', f'Kid record with id {id} was not found'))
+            kid_record = ch.kid_record_schema(kid_record)
+            return Result.success(kid_record)
         except Exception as e:
-            print('find one has gotten an exception:',e)
+            print(e)
+            return Result.failure('MongoDB Exception', type(e))
     
-    async def search(self,query:Search_kid_dto):
+    async def search(self, query:Search_kid_dto):
         try:
             kids = DB\
                 .find({
-                     '$text':{'$search': query.search},})\
+                     '$text':{'$search': query.search}})\
                 .skip(query.page*query.per_page)\
                 .limit(query.per_page).to_list()
-            kids = self.kid_schemas(kids)
             if kids is None:
-                return {'msg': f"There is no records matching {query.search} "}
-            return kids
+                return Result.failure(Error(f'Kid Records Not Found', f"There is no records matching {query.search} "))
+            kids = ch.kid_schemas(kids)
+            return Result.success(kids)
         except Exception as e:
-                  print('search has gotten an exception:',e)
+                print(e.__cause__)
+                r:Result =Result.failure(Error('MongoDB Exception', e.__cause__ ))
+                print(e)
+                return Result.failure(Error('MongoDB Exception', e.__cause__ ))
 
 
     
     
     async def modify_record(self, record):
         try:
-        
-            kid_record = self.ensamble_kid_record(record,uuid4())
+            
+            kid_record = ch.ensamble_kid_record(record,uuid4())
             kid_record['id']= record.id
             kid_record =  DB.find_one_and_replace({
                 'id':record.id},
                 kid_record,
                 return_document = ReturnDocument.AFTER
-            )  
-            kid_record = self.kid_record_schema(kid_record)
-            return kid_record
+            )
+            if kid_record is None:    
+                return Result.failure(Error(f'Kid Record Not Found', f'Kid record with id {record.id} was not found, so that it was not modified'))
+            kid_record = ch.kid_record_schema(kid_record)
+            print('kid record update',kid_record)
+            return Result.success(kid_record)
         
+        except Exception as e:  
+            print('excepcion en modify record', e)
+            return Result.failure(Error('MongoDB Exception', type(e)))
+
+
+    
+    async def delete_record(self, id: str):
+        try:
+            deleted = DB.find_one_and_delete({'id':id})
+            if deleted is None:   
+                return Result.failure(Error(f'Kid Record Not Found', f'Kid record with id {id} was not found, therefore it was not deleted'))
+            deleted = ch.kid_record_schema(deleted)
+            return Result.success(deleted)
         except Exception as e:
-            print('Update record has gotten an exception:',e)
-
-
-    
-    async def delete_record(id: str):
-        pass
+            return Result.failure(Error('MongoDB Exception', type(e)))
     
     
-    def kid_schema(self,kid_record)-> dict:
-        return {
-            'id':kid_record['id'],
-            'internal_id':kid_record['kid']['internal_id'],
-            'names':kid_record['kid']['names'],
-            'last_names':kid_record['kid']['last_names'],
-            'identification':{
-                  'personal_id': kid_record['kid']['identification']['personal_id'], 
-                  'birth_certificate': kid_record['kid']['identification']['birth_certificate']
-            },
-        }
-
-    def kid_schemas(self,kid_records)-> list[dict]:
-        kids=[ self.kid_schema(kid) for kid in kid_records ]
-        return kids
-
-
-    def kid_record_schema(self,kid_record)-> dict:
-        return {
-            'id':  kid_record['id'],
-            'kid':{
-                  'internal_id':kid_record['kid']['internal_id'],
-                  'names':kid_record['kid']['names'],
-                  'last_names':kid_record['kid']['last_names'],
-                  'identification':{
-                        'personal_id': kid_record['kid']['identification']['personal_id'], 
-                        'birth_certificate': kid_record['kid']['identification']['birth_certificate']
-                    },
-                },
-            'responsibles': {
-                'names': kid_record['responsibles']['names'],
-                'identifications': kid_record['responsibles']['identifications'],
-            'contacts': kid_record['responsibles']['contacts']
-                },
-
-            'record': {
-                 'court_id': kid_record['record']['court_id'],
-                 'bambi_entry_dates':kid_record['record']['bambi_entry_dates'],
-                 'bambi_entry_reasons': kid_record['record']['bambi_entry_reasons'],
-                 'bambi_departure_date': kid_record['record']['bambi_departure_date'] ,
-                 'bambi_departure_reason':  kid_record['record']['bambi_departure_reason'] ,
-                 'justice_organization': kid_record['record']['justice_organization'] 
-                }      
-        }
-
-
-    def ensamble_kid_record(self,dto, id):
-            kid_record = {
-                'id': id.hex,
-                'kid':{
-                    'internal_id': dto.kid_internal_id,
-                    'last_names': dto.kid_last_names ,
-                    'names': dto.kid_names,
-                    'identification': {
-                         'personal_id': dto.kid_personal_id,
-                         'birth_certificate': dto.kid_birth_certificate
-                    }       
-                },
-                'record':{
-                    'court_id': dto.record_court_id,
-                    'bambi_entry_dates': dto.record_bambi_entry_date,
-                    'bambi_entry_reasons':dto.record_bambi_entry_reasons,
-                    'bambi_departure_date': dto.record_bambi_departure_date,
-                    'bambi_departure_reason': dto.record_bambi_departure_reason,
-                    'justice_organization': dto.record_justice_organization             
-                },
-                'responsibles':{
-                    'names':dto.responsible_names ,
-                    'identifications': dto.responsible_identification,
-                    'contacts': dto.responsible_contact
-                    }, 
-                }
-                
-            
-            return kid_record
-
+    
     

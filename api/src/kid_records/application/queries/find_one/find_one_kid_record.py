@@ -1,3 +1,4 @@
+from src.core.application.result_handlers.result import Result
 from src.kid_records.domain.repository.record_repository import Record_repository
 from src.core.application.application_service import ApplicationService
 from bson import Binary
@@ -12,8 +13,10 @@ class find_one_kid_record_service[str, dict](ApplicationService):
         self.kid_record_repository = record_repository
     
     async def execute(self,id: str) -> dict:
-            kid_record = await self.kid_record_repository.find_one(id)          
-            return kid_record
+        response: Result = await self.kid_record_repository.find_one(id)          
+        if response.is_error():
+             return {'Error': response.get_error_message()}
+        return response.develop()
 
         
         
