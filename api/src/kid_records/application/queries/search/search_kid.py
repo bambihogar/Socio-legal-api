@@ -13,9 +13,9 @@ class Search_kid_service[str, dict](ApplicationService):
     
     async def execute(self, dto:Search_kid_dto) -> dict:
             response:Result = await self.kid_record_repository.search(dto)
-            if response.is_error() :
-                return {'Error': response.get_error_message()} 
-            return response.develop()
+            #if response.is_error() :
+            #    return {'Error': response.get_error_message()} 
+            return response
 
 
         

@@ -11,7 +11,7 @@ class Update_kid_record_service[Update_kid_record_dto, dict](ApplicationService)
     
     async def execute(self,dto: Update_kid_record_dto) -> dict:
         response:Result = await self.kid_record_repository.modify_record(dto)
-        if response.is_error():
-                return {'Error': response.get_error_message()}
-        return response.develop()
+        #if response.is_error():
+        #        return {'Error': response.get_error_message()}
+        return response
     

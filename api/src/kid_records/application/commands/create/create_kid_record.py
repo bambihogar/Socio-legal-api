@@ -13,10 +13,9 @@ class Create_kid_record_service[Create_kid_record_dto, dict](ApplicationService)
     
     async def execute(self,dto: Create_kid_record_dto):
         response = await self.kid_record_repository.create_kid_record(dto)
-        
-        if response.is_error():
-            return {'Error': response.get_error_message()}
-        return response.develop()
+        #if response.is_error():
+        #    return response
+        return response
         
         
 

@@ -10,6 +10,6 @@ class Delete_kid_record_service[str,dict](ApplicationService):
 
     async def execute(self, id):
         response: Result = await self.kid_record_repository.delete_record(id)
-        if response.is_error():
-            return {'Error': response.get_error_message()}
-        return response.develop()
+        #if response.is_error():
+        #    return {'Error': response.get_error_message()}
+        return response

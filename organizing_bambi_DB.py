@@ -142,9 +142,12 @@ try:
     uri = "mongodb://{}:{}@{}:{}/{}?authSource=admin".format(MONGO_USER, MONGO_PASS, MONGO_HOST, MONGO_PORT, MONGO_DB)
     client = MongoClient(uri)
     database = client['bambi_socio_legal']
-    collection = database['kid_information']
-    res2 = collection.insert_many(array)
-    res2.create_index({
+    kid_record_collection = database['kid_information']
+    Auditing_collection = database['auditing']
+    massive_insert_response = kid_record_collection.insert_many(array)
+    print(massive_insert_response)
+    print()
+    kid_record_collection.create_index({
         'kid.internal_id':'text',
         'kid.last_names':'text',
         'kid.names':'text',
