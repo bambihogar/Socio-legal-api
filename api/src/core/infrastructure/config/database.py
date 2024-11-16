@@ -1,19 +1,16 @@
 from pymongo import MongoClient
+from src.core.infrastructure.config.config import get_settings
 
-MONGO_HOST = "localhost" 
-MONGO_PORT = "27018"
-MONGO_DB = "bambi_socio_legal"
-MONGO_USER = "root"
-MONGO_PASS = "secret"
+env = get_settings()
 
-def get_db():
-    uri = "mongodb://{}:{}@{}:{}/{}?authSource=admin".format(MONGO_USER, MONGO_PASS, MONGO_HOST, MONGO_PORT, MONGO_DB)
-    client = MongoClient(uri)
-    database = client['bambi_socio_legal']
-    kids = database['kid_information']
-    
-    return kids
-
+def get_db(): 
+    try:
+        client = MongoClient(env.DB_CONNECTION)
+        database = client['bambi_socio_legal']
+        kids = database['kid_information']
+        return kids
+    except Exception as e:
+        print(e)    
 
 
 

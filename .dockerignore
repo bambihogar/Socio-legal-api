@@ -2,4 +2,4 @@ venv
 .env.example
 .gitignore
 endpoints.txt
-organizing_bambi_DB.py
+bambi_socio_legal-data

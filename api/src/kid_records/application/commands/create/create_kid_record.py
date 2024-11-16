@@ -12,11 +12,8 @@ class Create_kid_record_service[Create_kid_record_dto, dict](ApplicationService)
         self.uuid = uuid
     
     async def execute(self,dto: Create_kid_record_dto):
-        response = await self.kid_record_repository.create_kid_record(dto)
-        #if response.is_error():
-        #    return response
+        response:Result = await self.kid_record_repository.create_kid_record(dto)    
         return response
-        
-        
+    
 
     

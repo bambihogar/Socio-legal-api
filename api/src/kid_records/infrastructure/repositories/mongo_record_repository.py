@@ -20,8 +20,7 @@ class Mongo_record_repository(Record_repository):
             return Result.success(original_kid_record)
         
         except Exception as e:
-            print('e', e)
-            return Result.failure('MongoDB Exception', type(e))
+            return Result.failure(Error('MongoDB Exception', e.args))
             
     
     async def find_one(self, id:str):
@@ -33,7 +32,7 @@ class Mongo_record_repository(Record_repository):
             return Result.success(kid_record)
         except Exception as e:
             print(e)
-            return Result.failure('MongoDB Exception', type(e))
+            return Result.failure(Error('MongoDB Exception', e.args))
     
     async def search(self, query:Search_kid_dto):
         try:
@@ -47,10 +46,7 @@ class Mongo_record_repository(Record_repository):
             kids = ch.kid_schemas(kids)
             return Result.success(kids)
         except Exception as e:
-                print(e.__cause__)
-                r:Result =Result.failure(Error('MongoDB Exception', e.__cause__ ))
-                print(e)
-                return Result.failure(Error('MongoDB Exception', e.__cause__ ))
+                return Result.failure(Error('MongoDB Exception', e.args))
 
 
     
@@ -73,7 +69,7 @@ class Mongo_record_repository(Record_repository):
         
         except Exception as e:  
             print('excepcion en modify record', e)
-            return Result.failure(Error('MongoDB Exception', type(e)))
+            return Result.failure(Error('MongoDB Exception', e.args))
 
 
     
@@ -85,7 +81,7 @@ class Mongo_record_repository(Record_repository):
             deleted = ch.kid_record_schema(deleted)
             return Result.success(deleted)
         except Exception as e:
-            return Result.failure(Error('MongoDB Exception', type(e)))
+            return Result.failure(Error('MongoDB Exception', e.args))
     
     
     

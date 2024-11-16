@@ -1,10 +1,18 @@
 import json
 import csv, re
+import os
 from pymongo import MongoClient
+from api.src.core.infrastructure.config.config import get_settings
+from dotenv import load_dotenv
+
 
 array = []
+load_dotenv()
 
-
+# This script was used as an ETL for cleaning and transforming the data taken from 
+# the excel which contained the kid's records and then loaded into a mongodb database.
+# this script is needed no more because the data is already allocated into the db, 
+# it was left here so that the people which continue to work in this project know how the database was populated
 def organizing_identification(kid_identification):
     if ( 
             'C. I.' in kid_identification[0].upper() or 
@@ -38,15 +46,6 @@ def organizing_responsible(responsible):
 def organizing_entry_date(bambi_entry_dates):
         bambi_entry_dates = re.split(' / |Reing. ',bambi_entry_dates )
         bambi_entry_date = bambi_entry_dates[0]
-        #if(len(bambi_entry_dates) > 1):
-        #      bambi_reentry_date = bambi_entry_dates[1]
-        
-        #elif( len(bambi_entry_dates) == 1 and bambi_entry_dates[0] ==''):
-        #      print('hola')
-        #      bambi_entry_date = None
-        #      bambi_reentry_date = None
-        #else:
-        #      bambi_reentry_date = None    
         return bambi_entry_dates
 
 def organizing_entry_reason(entry_reasons):
@@ -132,49 +131,36 @@ array.pop(0)
 
 
 try:
+    uri = os.getenv("DB_CONNECTION")
+    uri_remote  = os.getenv('DB_CONNECTION_REMOTE')
+    uri_compose = os.getenv("DB_CONNECTION_COMPOSE")#os.getenv("DB_CONNECTION_COMPOSE_LOCAL")
+    
+    client = MongoClient(uri_remote)
+    if client.admin.command("ping")["ok"] == 1:
+        print("Connected to the database successfully")
+        database = client['bambi_socio_legal']
+        kid_record_collection = database['kid_information']
+        Auditing_collection = database['auditing']
+        massive_insert_response = kid_record_collection.insert_many(array)
 
-    MONGO_HOST = "localhost" 
-    MONGO_PORT = "27018"
-    MONGO_DB = "bambi_socio_legal"
-    MONGO_USER = "root"
-    MONGO_PASS = "secret"
-
-    uri = "mongodb://{}:{}@{}:{}/{}?authSource=admin".format(MONGO_USER, MONGO_PASS, MONGO_HOST, MONGO_PORT, MONGO_DB)
-    client = MongoClient(uri)
-    database = client['bambi_socio_legal']
-    kid_record_collection = database['kid_information']
-    Auditing_collection = database['auditing']
-    massive_insert_response = kid_record_collection.insert_many(array)
-    print(massive_insert_response)
-    print()
-    kid_record_collection.create_index({
-        'kid.internal_id':'text',
-        'kid.last_names':'text',
-        'kid.names':'text',
-        'record.court_id':'text',
-        'record.bambi_entry_dates':'text',
-        'record.bambi_departure_dates':'text'
-    }, 
-    {
-        'name':'search_kids_index'
-    })
+        kid_record_collection.create_index(
+        [
+            ('kid.internal_id', 'text'),
+            ('kid.last_names', 'text'),
+            ('kid.names', 'text'),
+            ('record.court_id', 'text'),
+            ('record.bambi_entry_dates', 'text'),
+            ('record.bambi_departure_dates', 'text')
+        ],
+        name='search_kids_index'
+        )
+    else:
+        print("Failed to connect to the database")
     print('yasta')
 except Exception as ex:
+    print("Failed to connect to the database")
     print('conectadose a DB: {}'.format(ex))
 finally:
     print('Conexion finalizada')
-#acomodar manualmente griselda; 039-2016-JULIO CARRASQUEL, José Isrrael; 372 DÁVALOS CONTRERAS, Santiago Isaac; 798 hasta 802; 013-2023 880;
-# 005-2023 870y871; 022-2009 150y151; 026-2009 157 hasta 161; 
-#Yoangel D'olio acomodar manual 006-2021
 
 
-#db.blog.createIndex(
-#   {
-#     content: "text",
-#     "users.comments": "text",
-#     "users.profiles": "text"
-#   },
-#   {
-#     name: "InteractionsTextIndex"
-#   }
-#)

@@ -47,7 +47,7 @@ async def search(q: str = None, page: int = 0, limit: int = 10):
         if(q is None):
               return {'code':400,'msg':'You need to send real words to find records'}
         
-        dto = Search_kid_dto(page= page,per_page=limit, search=q)
+        dto = Search_kid_dto(page = page, per_page=limit, search=q)
         service = LoggingDecorator(
           Search_kid_service(kid_records_repository)
           ,logger)
@@ -57,7 +57,10 @@ async def search(q: str = None, page: int = 0, limit: int = 10):
 
 @kid_records_router.put("/{id}/",)
 async def update(body: Update_kid_record_entry, id: str):
-        dto = organize_update_dto(body,id)
+        try:
+          dto = organize_update_dto(body,id)
+        except Exception as e:
+              return {"msg":"id must have at least 8 characters " }
         service = LoggingDecorator(
           Update_kid_record_service(kid_records_repository)
           ,logger)
