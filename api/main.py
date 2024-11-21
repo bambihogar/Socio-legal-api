@@ -5,3 +5,4 @@ import os
 
 application = FastAPI()
 application.include_router(kid_records_router)
+

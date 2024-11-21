@@ -10,7 +10,7 @@ class Create_kid_record_service[Create_kid_record_dto, dict](ApplicationService)
         super().__init__()
         self.kid_record_repository = record_repository
         self.uuid = uuid
-    
+
     async def execute(self,dto: Create_kid_record_dto):
         response:Result = await self.kid_record_repository.create_kid_record(dto)    
         return response

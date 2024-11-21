@@ -87,8 +87,7 @@ with open('/home/alfonsoski15/Escritorio/dataBambi.csv') as csv_file:
         responsible_identification = organizing_responsible_id(line[10].split('/'))
         responsible_contact = re.split(' 7 |/', line[11])
         if(responsible_contact[0] ==''):
-               responsible_contact[0] = None
-        
+               responsible_contact[0] = 'NO SE TIENE INFO'
         if (line[8] == ''):
             court_id = None
         else:
